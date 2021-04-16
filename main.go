@@ -28,9 +28,9 @@ type point struct {
 	grayNew uint8
 }
 
-var step = 1
-var scale float32 = 1.1
-var distance float64 = 6
+var step = 1             // 查看相邻像素灰度的步长（步长越大计算量越大）
+var scale float32 = 1.1  // 得到的灰度平均值的缩放系统
+var distance float64 = 6 // 计算相邻像素灰度值的容差
 
 //图片灰化处理
 func hdImage(m image.Image) *image.RGBA {
