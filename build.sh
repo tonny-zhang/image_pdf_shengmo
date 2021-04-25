@@ -21,7 +21,7 @@ rm -rf $path_release/*
 
 mkdir -p $path_release
 
-go build -ldflags "-s -w -X ${project_name}/command.version=${VERSION} -X ${project_name}/command.buildtime=`date +%Y%m%d.%H%M%S`" -o $file_path_mac
+go build -ldflags "-s -w -X main.version=${VERSION} -X main.buildtime=`date +%Y%m%d.%H%M%S`" -o $file_path_mac
 upx -o $file_path_min_mac $file_path_mac
 
 # env GOOS=linux GOARCH=amd64 go build -ldflags "-s -w -X ${project_name}/command.version=${VERSION} -X ${project_name}/command.buildtime=`date +%Y%m%d.%H%M%S`" -o $file_path_linux

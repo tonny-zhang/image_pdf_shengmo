@@ -13,6 +13,9 @@ import (
 	"github.com/urfave/cli"
 )
 
+var version = ""
+var buildtime = ""
+
 var filterEdge = filter.Edge
 var filterGray = filter.Gray
 var filterYouhua = filter.Youhua
@@ -153,6 +156,16 @@ func main() {
 					fmt.Printf("\t %d. %s\n", index, key)
 					index++
 				}
+				return nil
+			},
+		},
+		{
+			Name:    "version",
+			Aliases: []string{"v"},
+			Usage:   "show version",
+			Action: func(c *cli.Context) error {
+				fmt.Printf("Desc: %s", "处理图片并生成pdf方便打印\n")
+				fmt.Printf("  version: %s\n  build time: %s\n", version, buildtime)
 				return nil
 			},
 		},
