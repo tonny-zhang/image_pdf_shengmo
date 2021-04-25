@@ -36,7 +36,7 @@ func deal(imgSource string) (*utils.PdfImg, error) {
 		if e != nil {
 			return nil, e
 		}
-		log.Printf("生成%s, 用时%v", target, time.Now().Sub(timeStart))
+		log.Printf("生成 %s, 用时%v", target, time.Now().Sub(timeStart))
 
 		return &utils.PdfImg{
 			Src:    target,
@@ -73,6 +73,7 @@ func main() {
 		cli.UintFlag{
 			Name:  "edge-graycut",
 			Usage: "grayCut for cut light gray",
+			Value: 200,
 		},
 	}
 
@@ -122,9 +123,12 @@ func main() {
 						}
 					}
 				}
-				pdfPath := path.Join(dir, currentFilter.Name()+"_pdf", "print.pdf")
-				utils.CreatePdf(imgList, pdfPath)
-				log.Println("生成pdf:", pdfPath)
+				if !c.Bool("nopdf") {
+					pdfPath := path.Join(dir, "pdf", currentFilter.Name()+".pdf")
+					utils.CreatePdf(imgList, pdfPath)
+					log.Println("生成pdf:", pdfPath)
+					utils.Open(pdfPath)
+				}
 			} else {
 				fmt.Println("[ERROR] 读取目录[" + dir + "]错误")
 				os.Exit(0)

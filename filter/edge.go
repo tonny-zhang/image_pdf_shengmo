@@ -92,5 +92,5 @@ func (edge *edge) GetDescription() string {
 // Edge filter instance
 var Edge IFilter = &edge{
 	name:    "edge",
-	grayCut: 220,
+	grayCut: 200,
 }
