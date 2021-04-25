@@ -52,7 +52,7 @@ func deal(imgSource string) (*utils.PdfImg, error) {
 
 func main() {
 	app := cli.NewApp()
-	app.Name = "imagePrint"
+	app.Name = "imgPrint"
 	app.Description = "deal image and create pdf"
 
 	app.Flags = []cli.Flag{
