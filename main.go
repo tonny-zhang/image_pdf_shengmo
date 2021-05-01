@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"image_pdf_shengmo/filter"
 	"image_pdf_shengmo/utils"
+	"io/fs"
 	"log"
 	"os"
 	"path"
+	"sort"
 	"strings"
 	"time"
 
@@ -116,9 +118,22 @@ func main() {
 		if info.IsDir() {
 			list, e := os.ReadDir(dir)
 			if e == nil {
-				// currentFilter = filterGray
-				imgList := make([]utils.PdfImg, 0)
+				fileList := make([]fs.DirEntry, 0)
 				for _, f := range list {
+					if !f.IsDir() {
+						fileList = append(fileList, f)
+					}
+				}
+
+				sort.Slice(fileList, func(i, j int) bool {
+					a := fileList[i].Name()
+					b := fileList[j].Name()
+
+					return strings.Compare(strings.Repeat("0", 15-len(a))+a, strings.Repeat("0", 15-len(b))+b) < 0
+				})
+
+				imgList := make([]utils.PdfImg, 0)
+				for _, f := range fileList {
 					if !f.IsDir() && !strings.HasPrefix(f.Name(), ".") {
 						img, e := deal(path.Join(dir, f.Name()))
 						if e == nil {
