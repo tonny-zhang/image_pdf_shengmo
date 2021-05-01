@@ -4,11 +4,10 @@ import (
 	"fmt"
 	"image_pdf_shengmo/filter"
 	"image_pdf_shengmo/utils"
-	"io/fs"
 	"log"
 	"os"
 	"path"
-	"sort"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -31,11 +30,11 @@ func init() {
 	filters[filterYouhua.Name()] = filterYouhua
 }
 func deal(imgSource string) (*utils.PdfImg, error) {
-	img, e := utils.LoadImage(imgSource)
+	img, _, e := utils.LoadImage(imgSource)
 	if e == nil {
 		timeStart := time.Now()
 		log.Printf("开始处理 %s", imgSource)
-		img := currentFilter.Filter(img)
+		img := currentFilter.Filter(utils.NewImg(img))
 		target := path.Join(path.Dir(imgSource), currentFilter.Name(), path.Base(imgSource)+".png")
 		e := utils.Save(target, img)
 		if e != nil {
@@ -108,6 +107,7 @@ func main() {
 			fmt.Println("please enter dir or image path")
 			os.Exit(0)
 		}
+
 		info, e := os.Stat(dir)
 		if e != nil {
 			fmt.Println(e)
@@ -116,40 +116,27 @@ func main() {
 
 		fmt.Println(currentFilter.GetDescription())
 		if info.IsDir() {
-			list, e := os.ReadDir(dir)
-			if e == nil {
-				fileList := make([]fs.DirEntry, 0)
-				for _, f := range list {
-					if !f.IsDir() {
-						fileList = append(fileList, f)
-					}
-				}
+			fileList, e := utils.GetAllFile(dir)
 
-				sort.Slice(fileList, func(i, j int) bool {
-					a := fileList[i].Name()
-					b := fileList[j].Name()
-
-					return strings.Compare(strings.Repeat("0", 15-len(a))+a, strings.Repeat("0", 15-len(b))+b) < 0
-				})
-
-				imgList := make([]utils.PdfImg, 0)
-				for _, f := range fileList {
-					if !f.IsDir() && !strings.HasPrefix(f.Name(), ".") {
-						img, e := deal(path.Join(dir, f.Name()))
-						if e == nil {
-							imgList = append(imgList, *img)
-						}
-					}
-				}
-				if !c.Bool("nopdf") {
-					pdfPath := path.Join(dir, "pdf", currentFilter.Name()+".pdf")
-					utils.CreatePdf(imgList, pdfPath)
-					log.Println("生成pdf:", pdfPath)
-					utils.Open(pdfPath)
-				}
-			} else {
+			if e != nil {
 				fmt.Println("[ERROR] 读取目录[" + dir + "]错误")
 				os.Exit(0)
+			}
+
+			imgList := make([]utils.PdfImg, 0)
+			for _, f := range fileList {
+				if !f.IsDir() && !strings.HasPrefix(f.Name(), ".") {
+					img, e := deal(path.Join(dir, f.Name()))
+					if e == nil {
+						imgList = append(imgList, *img)
+					}
+				}
+			}
+			if !c.Bool("nopdf") {
+				pdfPath := path.Join(dir, "pdf", currentFilter.Name()+".pdf")
+				utils.CreatePdf(imgList, pdfPath)
+				log.Println("生成pdf:", pdfPath)
+				utils.Open(pdfPath)
 			}
 		} else {
 			_, e := deal(dir)
@@ -181,6 +168,27 @@ func main() {
 			Action: func(c *cli.Context) error {
 				fmt.Printf("Desc: %s", "处理图片并生成pdf方便打印\n")
 				fmt.Printf("  version: %s\n  build time: %s\n", version, buildtime)
+				return nil
+			},
+		},
+		{
+			Name:  "pdf",
+			Usage: "put image to pdf\n\t\t\tUsage: " + filepath.Base(os.Args[0]) + " pdf dir",
+			Action: func(c *cli.Context) error {
+				dir := c.Args().First()
+				nameSave := c.Args().Get(1)
+				if nameSave == "" {
+					nameSave = time.Now().Format("2006-01-02-150405") + ".pdf"
+				}
+				imgList, e := utils.GetAllImage(dir)
+				if e == nil {
+					pdfPath := filepath.Join(dir, "pdf", nameSave)
+					utils.CreatePdf(imgList, pdfPath)
+					log.Println("生成pdf:", pdfPath)
+					utils.Open(pdfPath)
+				} else {
+					fmt.Println(e)
+				}
 				return nil
 			},
 		},

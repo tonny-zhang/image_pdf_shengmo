@@ -32,6 +32,13 @@ func (img *Img) At(x, y int) color.Color {
 	return img.i.At(x, y)
 }
 
+// NewImg new image
+func NewImg(img image.Image) *Img {
+	return &Img{
+		i: img,
+	}
+}
+
 // Save save img
 func Save(target string, img image.Image) error {
 	os.MkdirAll(path.Dir(target), 0755)
@@ -55,16 +62,16 @@ func Save(target string, img image.Image) error {
 }
 
 // LoadImage load image
-func LoadImage(img string) (*Img, error) {
-	f, e := os.Open(img)
+func LoadImage(imgPath string) (m image.Image, isRotate bool, e error) {
+	f, e := os.Open(imgPath)
 	if e != nil {
-		return nil, e
+		return nil, false, e
 	}
 	defer f.Close()
-	m, _, e := image.Decode(f)
+	m, _, e = image.Decode(f)
 
 	if e != nil {
-		return nil, e
+		return nil, false, e
 	}
 	b := m.Bounds()
 	if b.Dx() > b.Dy() {
@@ -77,10 +84,9 @@ func LoadImage(img string) (*Img, error) {
 			}
 		}
 		m = rotate90
+		isRotate = true
 	}
-	return &Img{
-		i: m,
-	}, e
+	return
 }
 
 // GetGrayColor get gray color
