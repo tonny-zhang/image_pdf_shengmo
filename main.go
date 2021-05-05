@@ -2,13 +2,12 @@ package main
 
 import (
 	"fmt"
+	"image_pdf_shengmo/deal"
 	"image_pdf_shengmo/filter"
 	"image_pdf_shengmo/utils"
 	"log"
 	"os"
-	"path"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/urfave/cli"
@@ -29,27 +28,28 @@ func init() {
 	filters[filterGray.Name()] = filterGray
 	filters[filterYouhua.Name()] = filterYouhua
 }
-func deal(imgSource string) (*utils.PdfImg, error) {
-	img, _, e := utils.LoadImage(imgSource)
-	if e == nil {
-		timeStart := time.Now()
-		log.Printf("开始处理 %s", imgSource)
-		img := currentFilter.Filter(utils.NewImg(img))
-		target := path.Join(path.Dir(imgSource), currentFilter.Name(), path.Base(imgSource)+".png")
-		e := utils.Save(target, img)
-		if e != nil {
-			return nil, e
-		}
-		log.Printf("生成 %s, 用时%v", target, time.Now().Sub(timeStart))
 
-		return &utils.PdfImg{
-			Src:    target,
-			Width:  img.Bounds().Dx(),
-			Height: img.Bounds().Dy(),
-		}, nil
-	}
-	return nil, e
-}
+// func deal(imgSource string) (*utils.PdfImg, error) {
+// 	img, _, e := utils.LoadImage(imgSource)
+// 	if e == nil {
+// 		timeStart := time.Now()
+// 		log.Printf("开始处理 %s", imgSource)
+// 		img := currentFilter.Filter(utils.NewImg(img))
+// 		target := path.Join(path.Dir(imgSource), currentFilter.Name(), path.Base(imgSource)+".png")
+// 		e := utils.Save(target, img)
+// 		if e != nil {
+// 			return nil, e
+// 		}
+// 		log.Printf("生成 %s, 用时%v", target, time.Now().Sub(timeStart))
+
+// 		return &utils.PdfImg{
+// 			Src:    target,
+// 			Width:  img.Bounds().Dx(),
+// 			Height: img.Bounds().Dy(),
+// 		}, nil
+// 	}
+// 	return nil, e
+// }
 
 func main() {
 	app := cli.NewApp()
@@ -115,31 +115,17 @@ func main() {
 		}
 
 		fmt.Println(currentFilter.GetDescription())
+		deal.SetOptions(deal.Options{
+			Filter: currentFilter,
+		})
 		if info.IsDir() {
-			fileList, e := utils.GetAllFile(dir)
-
-			if e != nil {
-				fmt.Println("[ERROR] 读取目录[" + dir + "]错误")
+			err := deal.Dir(dir, !c.Bool("nopdf"))
+			if err != nil {
+				fmt.Println(err)
 				os.Exit(0)
 			}
-
-			imgList := make([]utils.PdfImg, 0)
-			for _, f := range fileList {
-				if !f.IsDir() && !strings.HasPrefix(f.Name(), ".") {
-					img, e := deal(path.Join(dir, f.Name()))
-					if e == nil {
-						imgList = append(imgList, *img)
-					}
-				}
-			}
-			if !c.Bool("nopdf") {
-				pdfPath := path.Join(dir, "pdf", currentFilter.Name()+".pdf")
-				utils.CreatePdf(imgList, pdfPath)
-				log.Println("生成pdf:", pdfPath)
-				utils.Open(pdfPath)
-			}
 		} else {
-			_, e := deal(dir)
+			_, e := deal.File(dir)
 			if e != nil {
 				fmt.Println(e)
 			}
