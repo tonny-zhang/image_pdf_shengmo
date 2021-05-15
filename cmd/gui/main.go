@@ -37,8 +37,8 @@ func main() {
 			dialog.ShowFolderOpen(func(dir fyne.ListableURI, err error) {
 				fmt.Println(dir, err)
 				if dir != nil {
-					// p := dir.Path()
-					p := "/Users/tonny/doc_zk/彬彬小学/平时作业/20210430/one"
+					p := dir.Path()
+					// p := "/Users/tonny/doc_zk/彬彬小学/平时作业/20210430/one"
 					deal.Dir(p, true)
 				}
 
@@ -57,6 +57,7 @@ func main() {
 		"file",
 	}, func(t string) {
 		btnOpen.SetText(t)
+		typeCurrent = t
 	})
 	sFilter := widget.NewSelect([]string{
 		filterEdge.Name(),
@@ -87,6 +88,7 @@ func main() {
 		Writer: writerGui{
 			writerFn: func(b []byte) {
 				line := fmt.Sprintf("%s %s", time.Now().Format("2006-01-02 15:04:05"), string(b))
+				fmt.Println("test", line)
 				content.Add(widget.NewLabel(line))
 				content.Refresh()
 				// cells := make([]widget.TextGridCell, len(line))

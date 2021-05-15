@@ -12,9 +12,4 @@ require (
 	github.com/srwiley/oksvg v0.0.0-20210320200257-875f767ac39a // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/urfave/cli v1.22.5
-	golang.org/x/image v0.0.0-20210504121937-7319ad40d33e // indirect
-	golang.org/x/net v0.0.0-20210504132125-bbd867fde50d // indirect
-	golang.org/x/sys v0.0.0-20210503173754-0981d6026fa6 // indirect
-	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
