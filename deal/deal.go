@@ -11,9 +11,9 @@ import (
 	"time"
 )
 
-var currentFilter filter.IFilter
-var currentWriter io.Writer
+var currentFilter filter.IFilter = filter.Edge
 var defaultWriter io.Writer = log.Default().Writer()
+var currentWriter io.Writer = defaultWriter
 
 // Options options for deal
 type Options struct {
@@ -27,9 +27,7 @@ func SetOptions(opt Options) {
 		currentFilter = opt.Filter
 	}
 
-	if opt.Writer == nil {
-		currentWriter = defaultWriter
-	} else {
+	if opt.Writer != nil {
 		currentWriter = opt.Writer
 	}
 }

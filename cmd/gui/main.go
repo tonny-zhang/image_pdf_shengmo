@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image_pdf_shengmo/deal"
 	"image_pdf_shengmo/filter"
+	"image_pdf_shengmo/utils"
 	"os"
 	"time"
 
@@ -27,6 +28,16 @@ func (writer writerGui) Write(b []byte) (int, error) {
 	writer.writerFn(b)
 	return 0, nil
 }
+
+var logList = make([]fyne.CanvasObject, 0)
+var logContainer *fyne.Container
+
+func clearLog() {
+	for _, log := range logList {
+		logContainer.Remove(log)
+	}
+	logList = make([]fyne.CanvasObject, 0)
+}
 func main() {
 	os.Setenv("FYNE_FONT", "/Library/Fonts/Arial Unicode.ttf")
 	a := app.New()
@@ -39,15 +50,19 @@ func main() {
 				if dir != nil {
 					p := dir.Path()
 					// p := "/Users/tonny/doc_zk/彬彬小学/平时作业/20210430/one"
+					clearLog()
 					deal.Dir(p, true)
 				}
 
 			}, win)
 		} else {
 			dialog.ShowFileOpen(func(a fyne.URIReadCloser, err error) {
-				fmt.Println(a, err)
 				if a != nil {
-					deal.File(a.URI().Path())
+					clearLog()
+					img, e := deal.File(a.URI().Path())
+					if e == nil {
+						utils.Open(img.Src)
+					}
 				}
 			}, win)
 		}
@@ -76,21 +91,26 @@ func main() {
 	text := widget.NewTextGrid()
 	text.SetText("deal process (处理过程):")
 
-	content := container.NewVBox(
+	logContainer = container.NewVBox(
 		sFilter,
 		sOpenType,
 		btnOpen,
 	)
-	content.Add(widget.NewLabel("处理过程:"))
+	logContainer.Add(widget.NewLabel("处理过程:"))
+	logContainerScroller := container.NewScroll(logContainer)
+	win.SetContent(logContainerScroller)
 
 	deal.SetOptions(deal.Options{
 		Filter: filterEdge,
 		Writer: writerGui{
 			writerFn: func(b []byte) {
 				line := fmt.Sprintf("%s %s", time.Now().Format("2006-01-02 15:04:05"), string(b))
-				fmt.Println("test", line)
-				content.Add(widget.NewLabel(line))
-				content.Refresh()
+				txt := widget.NewLabel(line)
+				logList = append(logList, txt)
+				logContainer.Add(txt)
+				logContainer.Refresh()
+
+				logContainerScroller.ScrollToBottom()
 				// cells := make([]widget.TextGridCell, len(line))
 				// for j, r := range line {
 				// 	cells[j] = widget.TextGridCell{Rune: r}
@@ -102,8 +122,6 @@ func main() {
 		},
 	})
 
-	contentScroll := container.NewScroll(content)
-	win.SetContent(contentScroll)
 	win.Resize(fyne.NewSize(480, 360))
 	win.ShowAndRun()
 }
